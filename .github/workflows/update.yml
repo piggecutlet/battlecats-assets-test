@@ -39,7 +39,7 @@ jobs:
           wget https://github.com/piggecutlet/battlecats-cryptor/releases/download/v0.2.0/battlecats-cryptor_0.2.0.zip -O tool.zip
           unzip -o tool.zip -d tool_dir
           cp -r tool_dir/battlecats-cryptor_0.2.0/* . 2>/dev/null || cp -r tool_dir/* .
-          wget https://github.com/piggecutlet/battlecats-server-assets-downloader/releases/download/v0.1.0/battlecats-server-assets-downloader_v0.1.0.jar -O battlecats-server-assets-downloader.jar
+          wget https://github.com/piggecutlet/battlecats-server-assets-downloader/releases/download/v0.2.1/battlecats-server-assets-downloader_v0.2.1.jar -O battlecats-server-assets-downloader.jar
           rm -rf tool.zip tool_dir
 
       - name: Process Locales
@@ -58,6 +58,7 @@ jobs:
             PACKAGE_NAME="${PACKAGES[$LOCALE]}"
             echo "Processing $LOCALE ($PACKAGE_NAME)..."
 
+            {
             git pull --rebase origin main
 
             rm -rf workspace assets assets_* app.xapk *.apk tmp_* 2>/dev/null || true
@@ -118,6 +119,7 @@ jobs:
               git pull --rebase origin main
               git push
             fi
+            } || { echo "Error: Failed to process $LOCALE. Skipping to next locale."; continue; }
           done
 
           rm -f battlecats-server-assets-downloader.jar "$CRYPTOR_JAR"
