@@ -56,6 +56,8 @@ jobs:
             PACKAGE_NAME="${PACKAGES[$LOCALE]}"
             echo "Processing $LOCALE ($PACKAGE_NAME)..."
 
+            rm -rf workspace assets assets_* app.xapk *.apk tmp_* 2>/dev/null || true
+
             CURRENT_VER=$(gh api "repos/${{ github.repository }}/commits?per_page=30" --jq "[.[] | select(.commit.message | startswith(\"$LOCALE \"))] | .[0].commit.message" 2>/dev/null | sed -n "s/^${LOCALE} \([0-9.]*\).*/\1/p")
             echo "Current version in git for $LOCALE: '$CURRENT_VER'"
 
@@ -80,11 +82,9 @@ jobs:
               continue
             fi
 
-            rm -f app.xapk *.apk
             curl -sL "$DOWNLOAD_URL" -o app.xapk
 
             rm -rf "$LOCALE"
-            rm -rf workspace
 
             java -jar "$CRYPTOR_JAR" decrypt "$LOCALE"
             mkdir -p "$LOCALE/local"
@@ -106,9 +106,13 @@ jobs:
 
             git add "$LOCALE"
             [ -f server.json ] && git add server.json
+
+            git reset -- "*.ogg" "*.caf"
+
+            git pull --rebase origin main 2>/dev/null || true
             git commit -S -m "$LOCALE $VERSION_NAME"
             git push
           done
 
           rm -f battlecats-server-assets-downloader.jar "$CRYPTOR_JAR"
-          rm -rf lib
+          rm -rf lib workspace assets app.xapk *.apk tmp_*
